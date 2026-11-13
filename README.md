@@ -216,4 +216,4 @@ python -m venv .venv
 .\.venv\Scripts\python.exe hw3.py --data-folder public_test
 ```
 
-Do not overwrite an existing configured .env. The .env file is ignored by Git. Never include API keys in source or reports.
+
