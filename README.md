@@ -205,7 +205,7 @@ The agent uses a fixed plan and explicit LangChain tool invocation, which the st
 
 The first live public test achieved **60/60 correct judgments and 100.0% balanced accuracy** across 20 companies. There were no disagreements. Each company used exactly two interviews. This is public-set performance, not a guarantee about unseen companies. Two additional live runs also achieved 60/60 and 100.0% balanced accuracy. The mean balanced accuracy across all three runs was 100.0%.
 
-Four local automated workflow tests (not included in the submission) cover retry interview budgets, company error isolation, missing financial evidence, and rejection of invented quotes. The supplied tools, runner and scoring code remain unchanged. A real API key and network access are required for complete results; a missing key produces explicitly missing interview judgments.
+Four automated workflow tests in `test_workflow.py` cover retry interview budgets, company error isolation, missing financial evidence, and rejection of invented quotes. The supplied tools, runner and scoring code remain unchanged. A real API key and network access are required for complete results; a missing key produces explicitly missing interview judgments.
 
 ### Run locally (Windows PowerShell)
 
@@ -217,3 +217,5 @@ python -m venv .venv
 ```
 
 
+
+The committed `results.csv` records 20 companies with 60/60 correct judgments. Run the workflow tests with `python -m unittest -v test_workflow`.
