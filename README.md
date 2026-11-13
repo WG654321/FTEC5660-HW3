@@ -170,14 +170,50 @@ for each public company. Grading uses a private set of about 20 unseen
 companies with the same tools and the same answer key rules, but different
 names and wording, and scores your 3 points only.
 
-## Homework 3 solution:
-> to students: this is your report, see the homework description.
+## Homework 3 solution
 
 ### My 3 points and rules
-> for each point: why you chose it, your PASS rule in one or two sentences, and the evidence it uses. Quote Fisher where it helps.
+
+| Point | Motivation | PASS rule and evidence |
+| --- | --- | --- |
+| 4: Above-average sales organization | Evaluate customer-facing capabilities using Fisher's scuttlebutt approach. | PASS when the customer interview describes knowledgeable, capable, consultative selling and good service; FAIL for weak or unhelpful selling. Tool: interview(customer, sales_team). |
+| 5: Worthwhile profit margin | Use an objective industry-relative profitability measure. | PASS when FY2025 operating margin is at least the company's industry median. SQL independently aggregates FY2025 revenue and costs, then computes 100 * (revenue - cost of sales - selling/admin - R&D) / revenue. |
+| 7: Labour and personnel relations | Evaluate employee experience independently of management claims. | PASS when the employee interview describes fair treatment, good working conditions and healthy employee relations; FAIL for poor conditions, unfairness or persistent conflict. Tool: interview(current_employee, working_conditions). |
+
+These are our operational definitions, not the unpublished grading rules. FY2025 is the latest complete fiscal year in the supplied data. Financial quantities remain in USD thousands; percentages are computed in SQL. The comparison uses unrounded SQL values, while displayed metrics are rounded by the supplied tool.
 
 ### Design
-> a visualization of your agent design and one paragraph describing it.
+
+```mermaid
+flowchart TD
+    A[Company tools] --> B[Fixed evidence routing]
+    B --> C[SQL: FY2025 revenue, costs, industry median]
+    B --> D[Interview customer: sales team]
+    B --> E[Interview employee: working conditions]
+    C --> F[SQL computes margin and point 5 verdict]
+    D --> G[DeepSeek through LangChain: points 4 and 7]
+    E --> G
+    G --> H[Validate JSON, verdicts and exact evidence quotes]
+    H --> I[Combine verdicts and evidence summaries]
+    F --> I
+    I --> J[Unmodified runner writes results.csv]
+```
+
+The agent uses a fixed plan and explicit LangChain tool invocation, which the starter permits. Two knowledgeable interviews are sufficient because the assignment says knowledgeable sources agree. A single deepseek-v4-flash call interprets both interviews, with a prompt-level consistency check. Python validates output structure and verifies that quoted evidence occurs in the correct interview; this checks grounding but does not independently prove the semantic verdict. SQL handles point 5 without model arithmetic. Up to four companies run concurrently. Model calls have timeouts and bounded retries; a retry reuses evidence. Errors are isolated per company, preserving any completed point. Missing evidence remains missing rather than being disguised as a FAIL verdict. Company data is read only through supplied tools; public answer keys are used only by the supplied evaluator.
 
 ### Results
-> your point score on `public_test`, the companies where your verdicts disagree with the public answers, and why.
+
+The first live public test achieved **60/60 correct judgments and 100.0% balanced accuracy** across 20 companies. There were no disagreements. Each company used exactly two interviews. This is public-set performance, not a guarantee about unseen companies. Two additional live runs also achieved 60/60 and 100.0% balanced accuracy. The mean balanced accuracy across all three runs was 100.0%.
+
+Four local automated workflow tests (not included in the submission) cover retry interview budgets, company error isolation, missing financial evidence, and rejection of invented quotes. The supplied tools, runner and scoring code remain unchanged. A real API key and network access are required for complete results; a missing key produces explicitly missing interview judgments.
+
+### Run locally (Windows PowerShell)
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+# Create .env locally with one line: DEEPSEEK_API_KEY=your_key_here
+.\.venv\Scripts\python.exe hw3.py --data-folder public_test
+```
+
+Do not overwrite an existing configured .env. The .env file is ignored by Git. Never include API keys in source or reports.
